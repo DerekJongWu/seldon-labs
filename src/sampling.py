@@ -53,3 +53,8 @@ def generate_samples(distribution, num_samples=100, method='kde'):
         return distribution.resample(num_samples)[0]
     else:
         return distribution.rvs(size=num_samples)
+    
+def sample_from_distribution(mean, std_dev, num_samples=1):
+    # Generate samples from a normal distribution
+    samples = np.random.normal(loc=mean, scale=std_dev, size=num_samples)
+    return samples
