@@ -365,7 +365,6 @@ export default function Home() {
                     <td className="p-2 font-semibold border">{scenario}</td>
                     {variables.map((v, vIdx) => {
                       const scenarioVal = scenarioValuesA[sIdx]?.[vIdx] || "";
-                      const meanVal = parseNumber(v.mean);
                       const inputVal = parseNumber(scenarioVal);
                       const minVal = parseNumber(v.min);
                       const maxVal = parseNumber(v.max);
@@ -422,20 +421,16 @@ export default function Home() {
                   // Build variable map: v1_Stnd, v2_Stnd, ... and v1_Val, v2_Val, ...
                   const vars: Record<string, number> = {};
                   variables.forEach((v, vIdx) => {
-                    const meanVal = parseNumber(v.mean);
-                    const maxVal = parseNumber(v.max);
-                    const minVal = parseNumber(v.min);
-                    const weightVal = parseNumber(v.weight);
                     const inputVal = parseNumber(scenarioValuesA[sIdx]?.[vIdx] || "");
-                    const stdNum = isNaN(inputVal) || isNaN(minVal) || isNaN(maxVal) || maxVal === minVal
+                    const stdNum = isNaN(inputVal) || isNaN(parseNumber(v.min)) || isNaN(parseNumber(v.max)) || parseNumber(v.max) === parseNumber(v.min)
                       ? 0
-                      : (inputVal - minVal) / (maxVal - minVal);
+                      : (inputVal - parseNumber(v.min)) / (parseNumber(v.max) - parseNumber(v.min));
                     vars[`v${vIdx + 1}_Stnd`] = stdNum;
                     vars[`v${vIdx + 1}_Val`] = isNaN(inputVal) ? 0 : inputVal;
-                    vars[`v${vIdx + 1}_mean`] = isNaN(meanVal) ? 0 : meanVal;
-                    vars[`v${vIdx + 1}_max`] = isNaN(maxVal) ? 0 : maxVal;
-                    vars[`v${vIdx + 1}_min`] = isNaN(minVal) ? 0 : minVal;
-                    vars[`v${vIdx + 1}_weight`] = isNaN(weightVal) ? 0 : weightVal;
+                    vars[`v${vIdx + 1}_mean`] = isNaN(parseNumber(v.mean)) ? 0 : parseNumber(v.mean);
+                    vars[`v${vIdx + 1}_max`] = isNaN(parseNumber(v.max)) ? 0 : parseNumber(v.max);
+                    vars[`v${vIdx + 1}_min`] = isNaN(parseNumber(v.min)) ? 0 : parseNumber(v.min);
+                    vars[`v${vIdx + 1}_weight`] = isNaN(parseNumber(v.weight)) ? 0 : parseNumber(v.weight);
                   });
                   const result = formulaA ? safeEval(formulaA, vars) : "";
                   return (
@@ -596,7 +591,6 @@ export default function Home() {
                     <td className="p-2 font-semibold border">{scenario}</td>
                     {variablesB.map((v, vIdx) => {
                       const scenarioVal = scenarioValuesB[sIdx]?.[vIdx] || "";
-                      const meanVal = parseNumber(v.mean);
                       const inputVal = parseNumber(scenarioVal);
                       const minVal = parseNumber(v.min);
                       const maxVal = parseNumber(v.max);
@@ -653,20 +647,16 @@ export default function Home() {
                   // Build variable map: v1_Stnd, v2_Stnd, ... and v1_Val, v2_Val, ...
                   const vars: Record<string, number> = {};
                   variablesB.forEach((v, vIdx) => {
-                    const meanVal = parseNumber(v.mean);
-                    const maxVal = parseNumber(v.max);
-                    const minVal = parseNumber(v.min);
-                    const weightVal = parseNumber(v.weight);
                     const inputVal = parseNumber(scenarioValuesB[sIdx]?.[vIdx] || "");
-                    const stdNum = isNaN(inputVal) || isNaN(minVal) || isNaN(maxVal) || maxVal === minVal
+                    const stdNum = isNaN(inputVal) || isNaN(parseNumber(v.min)) || isNaN(parseNumber(v.max)) || parseNumber(v.max) === parseNumber(v.min)
                       ? 0
-                      : (inputVal - minVal) / (maxVal - minVal);
+                      : (inputVal - parseNumber(v.min)) / (parseNumber(v.max) - parseNumber(v.min));
                     vars[`v${vIdx + 1}_Stnd`] = stdNum;
                     vars[`v${vIdx + 1}_Val`] = isNaN(inputVal) ? 0 : inputVal;
-                    vars[`v${vIdx + 1}_mean`] = isNaN(meanVal) ? 0 : meanVal;
-                    vars[`v${vIdx + 1}_max`] = isNaN(maxVal) ? 0 : maxVal;
-                    vars[`v${vIdx + 1}_min`] = isNaN(minVal) ? 0 : minVal;
-                    vars[`v${vIdx + 1}_weight`] = isNaN(weightVal) ? 0 : weightVal;
+                    vars[`v${vIdx + 1}_mean`] = isNaN(parseNumber(v.mean)) ? 0 : parseNumber(v.mean);
+                    vars[`v${vIdx + 1}_max`] = isNaN(parseNumber(v.max)) ? 0 : parseNumber(v.max);
+                    vars[`v${vIdx + 1}_min`] = isNaN(parseNumber(v.min)) ? 0 : parseNumber(v.min);
+                    vars[`v${vIdx + 1}_weight`] = isNaN(parseNumber(v.weight)) ? 0 : parseNumber(v.weight);
                   });
                   const result = formulaB ? safeEval(formulaB, vars) : "";
                   return (
