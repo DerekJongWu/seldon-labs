@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import React from "react";
 
 type Variable = {
   variable: string;
@@ -39,6 +40,39 @@ export default function Home() {
     },
   ]);
 
+  const scenarios = ["NT_NT", "T_NT", "NT_T", "T_T"];
+
+  // For Player A
+  const [scenarioValuesA, setScenarioValuesA] = useState(
+    scenarios.map(() => variables.map(() => ""))
+  );
+
+  const handleScenarioChangeA = (scenarioIdx: number, varIdx: number, value: string) => {
+    const updated = scenarioValuesA.map((row, i) =>
+      i === scenarioIdx ? row.map((v, j) => (j === varIdx ? value : v)) : row
+    );
+    setScenarioValuesA(updated);
+  };
+
+  // For Player B
+  const [scenarioValuesB, setScenarioValuesB] = useState(
+    scenarios.map(() => variablesB.map(() => ""))
+  );
+
+  const handleScenarioChangeB = (scenarioIdx: number, varIdx: number, value: string) => {
+    const updated = scenarioValuesB.map((row, i) =>
+      i === scenarioIdx ? row.map((v, j) => (j === varIdx ? value : v)) : row
+    );
+    setScenarioValuesB(updated);
+  };
+
+  // Helper to get numeric value from string (handles %)
+  const parseNumber = (val: string) => {
+    if (!val) return NaN;
+    if (val.includes("%")) return parseFloat(val.replace("%", ""));
+    return parseFloat(val);
+  };
+
   const handleChange = (index: number, field: keyof Variable, value: string) => {
     const newVariables = [...variables];
     newVariables[index][field] = value;
@@ -52,43 +86,133 @@ export default function Home() {
   };
 
   const addVariable = () => {
-    setVariables([
-      ...variables,
-      {
-        variable: "",
-        variableNumber: "",
-        desiredEffect: "Positive",
-        dataType: "",
-        mean: "",
-        max: "",
-        min: "",
-        weight: "",
-      },
-    ]);
+    setVariables(prev => {
+      const newVars = [
+        ...prev,
+        {
+          variable: "",
+          variableNumber: "",
+          desiredEffect: "Positive",
+          dataType: "",
+          mean: "",
+          max: "",
+          min: "",
+          weight: "",
+        },
+      ];
+      setScenarioValuesA(prevScenarioValues =>
+        prevScenarioValues.map(row => [...row, ""])
+      );
+      return newVars;
+    });
   };
 
   const addVariableB = () => {
-    setVariablesB([
-      ...variablesB,
-      {
-        variable: "",
-        variableNumber: "",
-        desiredEffect: "Positive",
-        dataType: "",
-        mean: "",
-        max: "",
-        min: "",
-        weight: "",
-      },
-    ]);
+    setVariablesB(prev => {
+      const newVars = [
+        ...prev,
+        {
+          variable: "",
+          variableNumber: "",
+          desiredEffect: "Positive",
+          dataType: "",
+          mean: "",
+          max: "",
+          min: "",
+          weight: "",
+        },
+      ];
+      setScenarioValuesB(prevScenarioValues =>
+        prevScenarioValues.map(row => [...row, ""])
+      );
+      return newVars;
+    });
   };
 
   const removeVariable = (index: number) => {
-    setVariables(variables.filter((_, i) => i !== index));
+    setVariables(prev => {
+      const newVars = prev.filter((_, i) => i !== index);
+      setScenarioValuesA(prevScenarioValues =>
+        prevScenarioValues.map(row => row.filter((_, i) => i !== index))
+      );
+      return newVars;
+    });
   };
 
   const removeVariableB = (index: number) => {
-    setVariablesB(variablesB.filter((_, i) => i !== index));
+    setVariablesB(prev => {
+      const newVars = prev.filter((_, i) => i !== index);
+      setScenarioValuesB(prevScenarioValues =>
+        prevScenarioValues.map(row => row.filter((_, i) => i !== index))
+      );
+      return newVars;
+    });
+  };
+
+  // Add state for formula input for Player A and Player B
+  const [formulaA, setFormulaA] = useState("");
+  const [formulaB, setFormulaB] = useState("");
+
+  // Helper to safely evaluate formula
+  function safeEval(formula: string, vars: Record<string, number>) {
+    try {
+      // Allow variable names with letters, numbers, and underscores
+      const allowed = /^[\d\s+\-*/().a-zA-Z0-9_]+$/;
+      if (!allowed.test(formula)) return "";
+      let expr = formula;
+      Object.entries(vars).forEach(([k, v]) => {
+        expr = expr.replaceAll(k, v.toString());
+      });
+      // eslint-disable-next-line no-eval
+      return eval(expr);
+    } catch {
+      return "";
+    }
+  }
+
+  // Add state for API response and loading
+  const [apiResponse, setApiResponse] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Helper to gather all data for submission
+  const gatherSubmissionData = () => {
+    // Prepare variables for both players
+    const playerA = {
+      variables,
+      scenarioValues: scenarioValuesA,
+      formula: formulaA,
+      scenarios,
+    };
+    const playerB = {
+      variables: variablesB,
+      scenarioValues: scenarioValuesB,
+      formula: formulaB,
+      scenarios,
+    };
+    // Optionally, you can also send payoff results if you want
+    return { playerA, playerB };
+  };
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    setError(null);
+    setApiResponse(null);
+    try {
+      const data = gatherSubmissionData();
+      const res = await fetch("/api/:path*", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error(`API error: ${res.status}`);
+      const result = await res.json();
+      setApiResponse(JSON.stringify(result, null, 2));
+    } catch (err: any) {
+      setError(err.message || "Unknown error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -213,6 +337,117 @@ export default function Home() {
               + Add Variable
             </button>
           </div>
+          <div className="mt-8">
+            <h4 className="font-semibold mb-2">Scenarios</h4>
+            <table className="min-w-full border border-gray-200 rounded-lg text-xs sm:text-sm">
+              <thead className="bg-gray-100 dark:bg-gray-800">
+                <tr>
+                  <th className="p-2 font-semibold border">Scenario</th>
+                  {variables.map((v, idx) => (
+                    <th key={idx} colSpan={2} className="p-2 font-semibold border text-center">
+                      {v.variableNumber}: {v.variable}
+                    </th>
+                  ))}
+                </tr>
+                <tr>
+                  <th></th>
+                  {variables.map((_, idx) => (
+                    <React.Fragment key={idx}>
+                      <th className="p-2 font-semibold border">Value</th>
+                      <th className="p-2 font-semibold border">Std</th>
+                    </React.Fragment>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {scenarios.map((scenario, sIdx) => (
+                  <tr key={scenario}>
+                    <td className="p-2 font-semibold border">{scenario}</td>
+                    {variables.map((v, vIdx) => {
+                      const scenarioVal = scenarioValuesA[sIdx]?.[vIdx] || "";
+                      const meanVal = parseNumber(v.mean);
+                      const inputVal = parseNumber(scenarioVal);
+                      const minVal = parseNumber(v.min);
+                      const maxVal = parseNumber(v.max);
+                      const stdNum = isNaN(inputVal) || isNaN(minVal) || isNaN(maxVal) || maxVal === minVal
+                        ? 0
+                        : (inputVal - minVal) / (maxVal - minVal);
+                      const std = isNaN(inputVal) || isNaN(minVal) || isNaN(maxVal) || maxVal === minVal
+                        ? ""
+                        : stdNum.toFixed(2);
+                      return (
+                        <React.Fragment key={vIdx}>
+                          <td className="p-2 border text-center">
+                            <input
+                              type="text"
+                              className="w-16 px-1 py-0.5 border rounded"
+                              value={scenarioVal}
+                              onChange={e => handleScenarioChangeA(sIdx, vIdx, e.target.value)}
+                              placeholder="Value"
+                            />
+                          </td>
+                          <td className="p-2 border text-center">
+                            {std}
+                          </td>
+                        </React.Fragment>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="mt-8">
+            <h4 className="font-semibold mb-2">Payoff Formula</h4>
+            <div className="flex items-center gap-2 mb-2">
+              <label htmlFor="formulaA" className="font-mono text-xs">Formula:</label>
+              <input
+                id="formulaA"
+                type="text"
+                className="w-full max-w-md px-2 py-1 border rounded font-mono text-xs"
+                value={formulaA}
+                onChange={e => setFormulaA(e.target.value)}
+                placeholder="e.g. (v1_Stnd*0.2)+(v2_Stnd*0.2)+(v3_Stnd*0.4)+(v4_Stnd*0.1)+(v5_Stnd*0.1)"
+              />
+            </div>
+            <table className="min-w-[300px] border border-gray-200 rounded-lg text-xs sm:text-sm">
+              <thead className="bg-gray-100 dark:bg-gray-800">
+                <tr>
+                  <th className="p-2 font-semibold border">Scenario</th>
+                  <th className="p-2 font-semibold border">Payoff Formula Result</th>
+                </tr>
+              </thead>
+              <tbody>
+                {scenarios.map((scenario, sIdx) => {
+                  // Build variable map: v1_Stnd, v2_Stnd, ... and v1_Val, v2_Val, ...
+                  const vars: Record<string, number> = {};
+                  variables.forEach((v, vIdx) => {
+                    const meanVal = parseNumber(v.mean);
+                    const maxVal = parseNumber(v.max);
+                    const minVal = parseNumber(v.min);
+                    const weightVal = parseNumber(v.weight);
+                    const inputVal = parseNumber(scenarioValuesA[sIdx]?.[vIdx] || "");
+                    const stdNum = isNaN(inputVal) || isNaN(minVal) || isNaN(maxVal) || maxVal === minVal
+                      ? 0
+                      : (inputVal - minVal) / (maxVal - minVal);
+                    vars[`v${vIdx + 1}_Stnd`] = stdNum;
+                    vars[`v${vIdx + 1}_Val`] = isNaN(inputVal) ? 0 : inputVal;
+                    vars[`v${vIdx + 1}_mean`] = isNaN(meanVal) ? 0 : meanVal;
+                    vars[`v${vIdx + 1}_max`] = isNaN(maxVal) ? 0 : maxVal;
+                    vars[`v${vIdx + 1}_min`] = isNaN(minVal) ? 0 : minVal;
+                    vars[`v${vIdx + 1}_weight`] = isNaN(weightVal) ? 0 : weightVal;
+                  });
+                  const result = formulaA ? safeEval(formulaA, vars) : "";
+                  return (
+                    <tr key={scenario}>
+                      <td className="p-2 border font-semibold">{scenario}</td>
+                      <td className="p-2 border text-right">{result !== "" ? Number(result).toFixed(4) : ""}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </section>
         {/* Player B Section */}
         <section className="w-full">
@@ -333,8 +568,135 @@ export default function Home() {
               + Add Variable
             </button>
           </div>
+          <div className="mt-8">
+            <h4 className="font-semibold mb-2">Scenarios</h4>
+            <table className="min-w-full border border-gray-200 rounded-lg text-xs sm:text-sm">
+              <thead className="bg-gray-100 dark:bg-gray-800">
+                <tr>
+                  <th className="p-2 font-semibold border">Scenario</th>
+                  {variablesB.map((v, idx) => (
+                    <th key={idx} colSpan={2} className="p-2 font-semibold border text-center">
+                      {v.variableNumber}: {v.variable}
+                    </th>
+                  ))}
+                </tr>
+                <tr>
+                  <th></th>
+                  {variablesB.map((_, idx) => (
+                    <React.Fragment key={idx}>
+                      <th className="p-2 font-semibold border">Value</th>
+                      <th className="p-2 font-semibold border">Std</th>
+                    </React.Fragment>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {scenarios.map((scenario, sIdx) => (
+                  <tr key={scenario}>
+                    <td className="p-2 font-semibold border">{scenario}</td>
+                    {variablesB.map((v, vIdx) => {
+                      const scenarioVal = scenarioValuesB[sIdx]?.[vIdx] || "";
+                      const meanVal = parseNumber(v.mean);
+                      const inputVal = parseNumber(scenarioVal);
+                      const minVal = parseNumber(v.min);
+                      const maxVal = parseNumber(v.max);
+                      const stdNum = isNaN(inputVal) || isNaN(minVal) || isNaN(maxVal) || maxVal === minVal
+                        ? 0
+                        : (inputVal - minVal) / (maxVal - minVal);
+                      const std = isNaN(inputVal) || isNaN(minVal) || isNaN(maxVal) || maxVal === minVal
+                        ? ""
+                        : stdNum.toFixed(2);
+                      return (
+                        <React.Fragment key={vIdx}>
+                          <td className="p-2 border text-center">
+                            <input
+                              type="text"
+                              className="w-16 px-1 py-0.5 border rounded"
+                              value={scenarioVal}
+                              onChange={e => handleScenarioChangeB(sIdx, vIdx, e.target.value)}
+                              placeholder="Value"
+                            />
+                          </td>
+                          <td className="p-2 border text-center">
+                            {std}
+                          </td>
+                        </React.Fragment>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="mt-8">
+            <h4 className="font-semibold mb-2">Payoff Formula</h4>
+            <div className="flex items-center gap-2 mb-2">
+              <label htmlFor="formulaB" className="font-mono text-xs">Formula:</label>
+              <input
+                id="formulaB"
+                type="text"
+                className="w-full max-w-md px-2 py-1 border rounded font-mono text-xs"
+                value={formulaB}
+                onChange={e => setFormulaB(e.target.value)}
+                placeholder="e.g. (v1_Stnd*0.2)+(v2_Stnd*0.2)+(v3_Stnd*0.4)+(v4_Stnd*0.1)+(v5_Stnd*0.1)"
+              />
+            </div>
+            <table className="min-w-[300px] border border-gray-200 rounded-lg text-xs sm:text-sm">
+              <thead className="bg-gray-100 dark:bg-gray-800">
+                <tr>
+                  <th className="p-2 font-semibold border">Scenario</th>
+                  <th className="p-2 font-semibold border">Payoff Formula Result</th>
+                </tr>
+              </thead>
+              <tbody>
+                {scenarios.map((scenario, sIdx) => {
+                  // Build variable map: v1_Stnd, v2_Stnd, ... and v1_Val, v2_Val, ...
+                  const vars: Record<string, number> = {};
+                  variablesB.forEach((v, vIdx) => {
+                    const meanVal = parseNumber(v.mean);
+                    const maxVal = parseNumber(v.max);
+                    const minVal = parseNumber(v.min);
+                    const weightVal = parseNumber(v.weight);
+                    const inputVal = parseNumber(scenarioValuesB[sIdx]?.[vIdx] || "");
+                    const stdNum = isNaN(inputVal) || isNaN(minVal) || isNaN(maxVal) || maxVal === minVal
+                      ? 0
+                      : (inputVal - minVal) / (maxVal - minVal);
+                    vars[`v${vIdx + 1}_Stnd`] = stdNum;
+                    vars[`v${vIdx + 1}_Val`] = isNaN(inputVal) ? 0 : inputVal;
+                    vars[`v${vIdx + 1}_mean`] = isNaN(meanVal) ? 0 : meanVal;
+                    vars[`v${vIdx + 1}_max`] = isNaN(maxVal) ? 0 : maxVal;
+                    vars[`v${vIdx + 1}_min`] = isNaN(minVal) ? 0 : minVal;
+                    vars[`v${vIdx + 1}_weight`] = isNaN(weightVal) ? 0 : weightVal;
+                  });
+                  const result = formulaB ? safeEval(formulaB, vars) : "";
+                  return (
+                    <tr key={scenario}>
+                      <td className="p-2 border font-semibold">{scenario}</td>
+                      <td className="p-2 border text-right">{result !== "" ? Number(result).toFixed(4) : ""}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </section>
       </main>
+      <div className="w-full max-w-4xl mt-12 flex flex-col items-center">
+        <button
+          type="button"
+          className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors font-semibold text-base"
+          onClick={handleSubmit}
+          disabled={loading}
+        >
+          {loading ? "Submitting..." : "Submit"}
+        </button>
+        {error && <div className="mt-4 text-red-600 font-mono">Error: {error}</div>}
+        {apiResponse && (
+          <pre className="mt-4 w-full bg-gray-100 dark:bg-gray-900 p-4 rounded text-xs overflow-x-auto text-left">
+            {apiResponse}
+          </pre>
+        )}
+      </div>
     </div>
   );
 }
