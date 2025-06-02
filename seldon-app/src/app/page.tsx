@@ -208,8 +208,12 @@ export default function Home() {
       if (!res.ok) throw new Error(`API error: ${res.status}`);
       const result = await res.json();
       setApiResponse(JSON.stringify(result, null, 2));
-    } catch (err: any) {
-      setError(err.message || "Unknown error");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Unknown error");
+      }
     } finally {
       setLoading(false);
     }
