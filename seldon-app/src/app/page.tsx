@@ -194,13 +194,13 @@ export default function Home() {
     return { playerA, playerB };
   };
 
-  const handleSubmit = async () => {
+  const handleGenerate = async () => {
     setLoading(true);
     setError(null);
     setApiResponse(null);
     try {
       const data = gatherSubmissionData();
-      const res = await fetch("/api/:path*", {
+      const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -679,10 +679,10 @@ export default function Home() {
         <button
           type="button"
           className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors font-semibold text-base"
-          onClick={handleSubmit}
+          onClick={handleGenerate}
           disabled={loading}
         >
-          {loading ? "Submitting..." : "Submit"}
+          {loading ? "Generating..." : "Generate"}
         </button>
         {error && <div className="mt-4 text-red-600 font-mono">Error: {error}</div>}
         {apiResponse && (
