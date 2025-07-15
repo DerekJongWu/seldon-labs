@@ -142,6 +142,9 @@ def run_games(playerA_variables, playerA_scenarios, playerA_equation, playerB_va
                            'stdev': playerB_variables[i]['stdev'], 
                            'weight': playerB_variables[i]['weight']}
 
+    
+    # run formula on playerA variables 
+
     return playerA_data, playerB_data
     
 

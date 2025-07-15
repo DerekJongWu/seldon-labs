@@ -14,6 +14,179 @@ type Variable = {
   weight: string;
 };
 
+// Visual Expression Builder Component
+const ExpressionBuilder = ({ 
+  formula, 
+  setFormula, 
+  variables, 
+  placeholder 
+}: { 
+  formula: string; 
+  setFormula: (formula: string) => void; 
+  variables: Variable[];
+  placeholder: string;
+}) => {
+  const [showBuilder, setShowBuilder] = useState(false);
+
+  const addToFormula = (text: string) => {
+    setFormula(formula + text);
+  };
+
+  const clearFormula = () => {
+    setFormula("");
+  };
+
+  const removeLastChar = () => {
+    setFormula(formula.slice(0, -1));
+  };
+
+  const operators = ["+", "-", "*", "/", "(", ")"];
+  const standardVariables = ["v1_Stnd", "v2_Stnd", "v3_Stnd", "v4_Stnd", "v5_Stnd"];
+  const valueVariables = ["v1_Val", "v2_Val", "v3_Val", "v4_Val", "v5_Val"];
+  const weightVariables = ["v1_weight", "v2_weight", "v3_weight", "v4_weight", "v5_weight"];
+
+  return (
+    <div className="w-full">
+      <div className="flex items-center gap-2 mb-2">
+        <label className="font-mono text-xs">Formula:</label>
+        <input
+          type="text"
+          className="w-full max-w-md px-2 py-1 border rounded font-mono text-xs"
+          value={formula}
+          onChange={e => setFormula(e.target.value)}
+          placeholder={placeholder}
+        />
+        <button
+          type="button"
+          onClick={() => setShowBuilder(!showBuilder)}
+          className="px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
+        >
+          {showBuilder ? "Hide Builder" : "Show Builder"}
+        </button>
+      </div>
+      
+      {showBuilder && (
+        <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            
+            {/* Standard Variables */}
+            <div>
+              <h5 className="font-semibold text-sm mb-2">Standard Variables</h5>
+              <div className="flex flex-wrap gap-1">
+                {standardVariables.slice(0, variables.length).map((varName, idx) => (
+                  <button
+                    key={varName}
+                    type="button"
+                    onClick={() => addToFormula(varName)}
+                    className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs hover:bg-green-200"
+                  >
+                    {varName}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Value Variables */}
+            <div>
+              <h5 className="font-semibold text-sm mb-2">Value Variables</h5>
+              <div className="flex flex-wrap gap-1">
+                {valueVariables.slice(0, variables.length).map((varName, idx) => (
+                  <button
+                    key={varName}
+                    type="button"
+                    onClick={() => addToFormula(varName)}
+                    className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs hover:bg-blue-200"
+                  >
+                    {varName}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Weight Variables */}
+            <div>
+              <h5 className="font-semibold text-sm mb-2">Weight Variables</h5>
+              <div className="flex flex-wrap gap-1">
+                {weightVariables.slice(0, variables.length).map((varName, idx) => (
+                  <button
+                    key={varName}
+                    type="button"
+                    onClick={() => addToFormula(varName)}
+                    className="px-2 py-1 bg-purple-100 text-purple-800 rounded text-xs hover:bg-purple-200"
+                  >
+                    {varName}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Operators */}
+            <div>
+              <h5 className="font-semibold text-sm mb-2">Operators</h5>
+              <div className="flex flex-wrap gap-1">
+                {operators.map((op) => (
+                  <button
+                    key={op}
+                    type="button"
+                    onClick={() => addToFormula(op)}
+                    className="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs hover:bg-gray-200"
+                  >
+                    {op}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Numbers */}
+            <div>
+              <h5 className="font-semibold text-sm mb-2">Numbers</h5>
+              <div className="flex flex-wrap gap-1">
+                {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, "."].map((num) => (
+                  <button
+                    key={num}
+                    type="button"
+                    onClick={() => addToFormula(num.toString())}
+                    className="px-2 py-1 bg-orange-100 text-orange-800 rounded text-xs hover:bg-orange-200"
+                  >
+                    {num}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div>
+              <h5 className="font-semibold text-sm mb-2">Actions</h5>
+              <div className="flex flex-wrap gap-1">
+                <button
+                  type="button"
+                  onClick={clearFormula}
+                  className="px-2 py-1 bg-red-100 text-red-800 rounded text-xs hover:bg-red-200"
+                >
+                  Clear
+                </button>
+                <button
+                  type="button"
+                  onClick={removeLastChar}
+                  className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs hover:bg-yellow-200"
+                >
+                  Backspace
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          {/* Formula Preview */}
+          <div className="mt-4 p-2 bg-white dark:bg-gray-700 rounded border">
+            <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Current Formula:</div>
+            <div className="font-mono text-sm break-all">{formula || "Empty"}</div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function Home() {
   const [variables, setVariables] = useState<Variable[]>([
     {
@@ -195,6 +368,22 @@ export default function Home() {
       formula: formulaB,
       scenarios,
     };
+    
+    // Alternative: Send formula as structured data instead of string
+    // const playerA = {
+    //   variables,
+    //   scenarioValues: scenarioValuesA,
+    //   formula: {
+    //     expression: formulaA,
+    //     variables: variables.map((v, i) => ({
+    //       name: `v${i+1}`,
+    //       type: 'Stnd', // or 'Val', 'weight', etc.
+    //       coefficient: parseFloat(v.weight) || 1
+    //     }))
+    //   },
+    //   scenarios,
+    // };
+    
     // Optionally, you can also send payoff results if you want
     return { playerA, playerB };
   };
@@ -212,7 +401,6 @@ export default function Home() {
       });
       if (!res.ok) throw new Error(`API error: ${res.status}`);
       const result = await res.json();
-      setApiResponse(JSON.stringify(result, null, 2));
       
       // Automatically download the JSON file
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
@@ -430,17 +618,12 @@ export default function Home() {
           </div>
           <div className="mt-8">
             <h4 className="font-semibold mb-2">Payoff Formula</h4>
-            <div className="flex items-center gap-2 mb-2">
-              <label htmlFor="formulaA" className="font-mono text-xs">Formula:</label>
-              <input
-                id="formulaA"
-                type="text"
-                className="w-full max-w-md px-2 py-1 border rounded font-mono text-xs"
-                value={formulaA}
-                onChange={e => setFormulaA(e.target.value)}
-                placeholder="e.g. (v1_Stnd*0.2)+(v2_Stnd*0.2)+(v3_Stnd*0.4)+(v4_Stnd*0.1)+(v5_Stnd*0.1)"
-              />
-            </div>
+            <ExpressionBuilder
+              formula={formulaA}
+              setFormula={setFormulaA}
+              variables={variables}
+              placeholder="e.g. (v1_Stnd*0.2)+(v2_Stnd*0.2)+(v3_Stnd*0.4)+(v4_Stnd*0.1)+(v5_Stnd*0.1)"
+            />
             <table className="min-w-[300px] border border-gray-200 rounded-lg text-xs sm:text-sm">
               <thead className="bg-gray-100 dark:bg-gray-800">
                 <tr>
@@ -454,14 +637,26 @@ export default function Home() {
                   const vars: Record<string, number> = {};
                   variables.forEach((v, vIdx) => {
                     const inputVal = parseNumber(scenarioValuesA[sIdx]?.[vIdx] || "");
-                    const stdNum = isNaN(inputVal) || isNaN(parseNumber(v.min)) || isNaN(parseNumber(v.max)) || parseNumber(v.max) === parseNumber(v.min)
-                      ? 0
-                      : (inputVal - parseNumber(v.min)) / (parseNumber(v.max) - parseNumber(v.min));
+                    const minVal = parseNumber(v.min);
+                    const maxVal = parseNumber(v.max);
+                    
+                    // Calculate standard variable based on desiredEffect
+                    let stdNum = 0;
+                    if (!isNaN(inputVal) && !isNaN(minVal) && !isNaN(maxVal) && maxVal !== minVal) {
+                      if (v.desiredEffect === "Positive") {
+                        // Positive = (val - min) / (max - min)
+                        stdNum = (inputVal - minVal) / (maxVal - minVal);
+                      } else if (v.desiredEffect === "Negative") {
+                        // Negative = (max - val) / (max - min)
+                        stdNum = (maxVal - inputVal) / (maxVal - minVal);
+                      }
+                    }
+                    
                     vars[`v${vIdx + 1}_Stnd`] = stdNum;
                     vars[`v${vIdx + 1}_Val`] = isNaN(inputVal) ? 0 : inputVal;
                     vars[`v${vIdx + 1}_mean`] = isNaN(parseNumber(v.mean)) ? 0 : parseNumber(v.mean);
-                    vars[`v${vIdx + 1}_max`] = isNaN(parseNumber(v.max)) ? 0 : parseNumber(v.max);
-                    vars[`v${vIdx + 1}_min`] = isNaN(parseNumber(v.min)) ? 0 : parseNumber(v.min);
+                    vars[`v${vIdx + 1}_max`] = isNaN(maxVal) ? 0 : maxVal;
+                    vars[`v${vIdx + 1}_min`] = isNaN(minVal) ? 0 : minVal;
                     vars[`v${vIdx + 1}_weight`] = isNaN(parseNumber(v.weight)) ? 0 : parseNumber(v.weight);
                   });
                   const result = formulaA ? safeEval(formulaA, vars) : "";
@@ -666,17 +861,12 @@ export default function Home() {
           </div>
           <div className="mt-8">
             <h4 className="font-semibold mb-2">Payoff Formula</h4>
-            <div className="flex items-center gap-2 mb-2">
-              <label htmlFor="formulaB" className="font-mono text-xs">Formula:</label>
-              <input
-                id="formulaB"
-                type="text"
-                className="w-full max-w-md px-2 py-1 border rounded font-mono text-xs"
-                value={formulaB}
-                onChange={e => setFormulaB(e.target.value)}
-                placeholder="e.g. (v1_Stnd*0.2)+(v2_Stnd*0.2)+(v3_Stnd*0.4)+(v4_Stnd*0.1)+(v5_Stnd*0.1)"
-              />
-            </div>
+            <ExpressionBuilder
+              formula={formulaB}
+              setFormula={setFormulaB}
+              variables={variablesB}
+              placeholder="e.g. (v1_Stnd*0.2)+(v2_Stnd*0.2)+(v3_Stnd*0.4)+(v4_Stnd*0.1)+(v5_Stnd*0.1)"
+            />
             <table className="min-w-[300px] border border-gray-200 rounded-lg text-xs sm:text-sm">
               <thead className="bg-gray-100 dark:bg-gray-800">
                 <tr>
@@ -690,14 +880,26 @@ export default function Home() {
                   const vars: Record<string, number> = {};
                   variablesB.forEach((v, vIdx) => {
                     const inputVal = parseNumber(scenarioValuesB[sIdx]?.[vIdx] || "");
-                    const stdNum = isNaN(inputVal) || isNaN(parseNumber(v.min)) || isNaN(parseNumber(v.max)) || parseNumber(v.max) === parseNumber(v.min)
-                      ? 0
-                      : (inputVal - parseNumber(v.min)) / (parseNumber(v.max) - parseNumber(v.min));
+                    const minVal = parseNumber(v.min);
+                    const maxVal = parseNumber(v.max);
+                    
+                    // Calculate standard variable based on desiredEffect
+                    let stdNum = 0;
+                    if (!isNaN(inputVal) && !isNaN(minVal) && !isNaN(maxVal) && maxVal !== minVal) {
+                      if (v.desiredEffect === "Positive") {
+                        // Positive = (val - min) / (max - min)
+                        stdNum = (inputVal - minVal) / (maxVal - minVal);
+                      } else if (v.desiredEffect === "Negative") {
+                        // Negative = (max - val) / (max - min)
+                        stdNum = (maxVal - inputVal) / (maxVal - minVal);
+                      }
+                    }
+                    
                     vars[`v${vIdx + 1}_Stnd`] = stdNum;
                     vars[`v${vIdx + 1}_Val`] = isNaN(inputVal) ? 0 : inputVal;
                     vars[`v${vIdx + 1}_mean`] = isNaN(parseNumber(v.mean)) ? 0 : parseNumber(v.mean);
-                    vars[`v${vIdx + 1}_max`] = isNaN(parseNumber(v.max)) ? 0 : parseNumber(v.max);
-                    vars[`v${vIdx + 1}_min`] = isNaN(parseNumber(v.min)) ? 0 : parseNumber(v.min);
+                    vars[`v${vIdx + 1}_max`] = isNaN(maxVal) ? 0 : maxVal;
+                    vars[`v${vIdx + 1}_min`] = isNaN(minVal) ? 0 : minVal;
                     vars[`v${vIdx + 1}_weight`] = isNaN(parseNumber(v.weight)) ? 0 : parseNumber(v.weight);
                   });
                   const result = formulaB ? safeEval(formulaB, vars) : "";
@@ -723,11 +925,6 @@ export default function Home() {
           {loading ? "Generating..." : "Generate"}
         </button>
         {error && <div className="mt-4 text-red-600 font-mono">Error: {error}</div>}
-        {apiResponse && (
-          <pre className="mt-4 w-full bg-gray-100 dark:bg-gray-900 p-4 rounded text-xs overflow-x-auto text-left">
-            {apiResponse}
-          </pre>
-        )}
       </div>
     </div>
   );
