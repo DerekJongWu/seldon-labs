@@ -73,7 +73,7 @@ const ExpressionBuilder = ({
             <div>
               <h5 className="font-semibold text-sm mb-2">Standard Variables</h5>
               <div className="flex flex-wrap gap-1">
-                {standardVariables.slice(0, variables.length).map((varName, idx) => (
+                {standardVariables.slice(0, variables.length).map((varName) => (
                   <button
                     key={varName}
                     type="button"
@@ -90,7 +90,7 @@ const ExpressionBuilder = ({
             <div>
               <h5 className="font-semibold text-sm mb-2">Value Variables</h5>
               <div className="flex flex-wrap gap-1">
-                {valueVariables.slice(0, variables.length).map((varName, idx) => (
+                {valueVariables.slice(0, variables.length).map((varName) => (
                   <button
                     key={varName}
                     type="button"
@@ -107,7 +107,7 @@ const ExpressionBuilder = ({
             <div>
               <h5 className="font-semibold text-sm mb-2">Weight Variables</h5>
               <div className="flex flex-wrap gap-1">
-                {weightVariables.slice(0, variables.length).map((varName, idx) => (
+                {weightVariables.slice(0, variables.length).map((varName) => (
                   <button
                     key={varName}
                     type="button"
