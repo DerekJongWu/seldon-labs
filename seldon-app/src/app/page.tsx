@@ -10,6 +10,7 @@ type Variable = {
   mean: string;
   max: string;
   min: string;
+  stdev: string;
   weight: string;
 };
 
@@ -23,6 +24,7 @@ export default function Home() {
       mean: "",
       max: "",
       min: "",
+      stdev: "",
       weight: "",
     },
   ]);
@@ -36,6 +38,7 @@ export default function Home() {
       mean: "",
       max: "",
       min: "",
+      stdev: "",
       weight: "",
     },
   ]);
@@ -97,6 +100,7 @@ export default function Home() {
           mean: "",
           max: "",
           min: "",
+          stdev: "",
           weight: "",
         },
       ];
@@ -119,6 +123,7 @@ export default function Home() {
           mean: "",
           max: "",
           min: "",
+          stdev: "",
           weight: "",
         },
       ];
@@ -208,6 +213,19 @@ export default function Home() {
       if (!res.ok) throw new Error(`API error: ${res.status}`);
       const result = await res.json();
       setApiResponse(JSON.stringify(result, null, 2));
+      
+      // Automatically download the JSON file
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+      const filename = `game_results_${timestamp}.json`;
+      const blob = new Blob([JSON.stringify(result, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -237,6 +255,7 @@ export default function Home() {
                   <th className="p-2 font-semibold">Mean</th>
                   <th className="p-2 font-semibold">Max</th>
                   <th className="p-2 font-semibold">Min</th>
+                  <th className="p-2 font-semibold">StDev</th>
                   <th className="p-2 font-semibold">Weight</th>
                   <th className="p-2 font-semibold">Remove</th>
                 </tr>
@@ -306,6 +325,15 @@ export default function Home() {
                         value={v.min}
                         onChange={e => handleChange(idx, "min", e.target.value)}
                         placeholder="e.g. -3%"
+                      />
+                    </td>
+                    <td className="p-2">
+                      <input
+                        type="text"
+                        className="w-16 px-1 py-0.5 border rounded"
+                        value={v.stdev}
+                        onChange={e => handleChange(idx, "stdev", e.target.value)}
+                        placeholder="e.g. 1.5%"
                       />
                     </td>
                     <td className="p-2">
@@ -463,6 +491,7 @@ export default function Home() {
                   <th className="p-2 font-semibold">Mean</th>
                   <th className="p-2 font-semibold">Max</th>
                   <th className="p-2 font-semibold">Min</th>
+                  <th className="p-2 font-semibold">StDev</th>
                   <th className="p-2 font-semibold">Weight</th>
                   <th className="p-2 font-semibold">Remove</th>
                 </tr>
@@ -532,6 +561,15 @@ export default function Home() {
                         value={v.min}
                         onChange={e => handleChangeB(idx, "min", e.target.value)}
                         placeholder="e.g. -3%"
+                      />
+                    </td>
+                    <td className="p-2">
+                      <input
+                        type="text"
+                        className="w-16 px-1 py-0.5 border rounded"
+                        value={v.stdev}
+                        onChange={e => handleChangeB(idx, "stdev", e.target.value)}
+                        placeholder="e.g. 1.5%"
                       />
                     </td>
                     <td className="p-2">
