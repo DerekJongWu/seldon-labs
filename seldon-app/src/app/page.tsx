@@ -349,7 +349,6 @@ export default function Home() {
   }
 
   // Add state for API response and loading
-  const [apiResponse, setApiResponse] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -391,7 +390,6 @@ export default function Home() {
   const handleGenerate = async () => {
     setLoading(true);
     setError(null);
-    setApiResponse(null);
     try {
       const data = gatherSubmissionData();
       const res = await fetch("/api/generate", {
