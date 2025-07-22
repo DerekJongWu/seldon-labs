@@ -2,6 +2,12 @@ from flask import Flask, request, jsonify
 from datetime import datetime
 import json
 import os
+from sl_package.sampling import sample_from_distribution
+import numpy as np
+import pandas as pd
+from io import BytesIO
+from flask import send_file
+
 app = Flask(__name__)
 
 @app.route("/api/python")
@@ -118,34 +124,103 @@ def handle_api_calls(subpath):
         }
         
         # Return the results for frontend to download
-        return jsonify(results), 200
+        df_a = player_data_to_df(playerA_data)
+        df_b = player_data_to_df(playerB_data)
+
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df_a.to_excel(writer, index=False, sheet_name='PlayerA')
+            df_b.to_excel(writer, index=False, sheet_name='PlayerB')
+        output.seek(0)
+
+        return send_file(
+            output,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True,
+            download_name='game_results.xlsx'
+        )
         
     except Exception as e:
         return jsonify({"error": f"An error occurred: {str(e)}"}), 500
 
 
-def run_games(playerA_variables, playerA_scenarios, playerA_equation, playerB_variables, playerB_scenarios, playerB_equation):
-    # get variable data
-    playerA_data = {}
-    playerB_data = {} 
+def run_games(playerA_variables, playerA_scenarios, playerA_equation, playerB_variables, playerB_scenarios, playerB_equation, num_samples=1000):
+    def process_player(variables, scenario_values, equation, num_samples):
+        variable_means = get_variable_means_per_scenario(variables, scenario_values)
+        scenario_results = []
+        for scenario_idx, scenario in enumerate(scenario_values):
+            samples = []
+            for _ in range(num_samples):
+                sampled = {}
+                normalized = {}
+                for var_idx, var in enumerate(variables):
+                    var_name = var.get('name', f'var_{var_idx}')
+                    mean = scenario[var_idx]
+                    stdev = var['stdev']
+                    min_val = var['min']
+                    max_val = var['max']
+                    sign = var.get('sign', 1)  # default to positive if not specified
 
-    for i in range(len(playerA_variables)):
-        playerA_data[i] = {'max': playerA_variables[i]['max'], 
-                           'min': playerA_variables[i]['min'], 
-                           'stdev': playerA_variables[i]['stdev'], 
-                           'weight': playerA_variables[i]['weight']}
-      
-  
-    for i in range(len(playerB_variables)):
-        playerB_data[i] = {'max': playerB_variables[i]['max'], 
-                           'min': playerB_variables[i]['min'], 
-                           'stdev': playerB_variables[i]['stdev'], 
-                           'weight': playerB_variables[i]['weight']}
+                    # 1. Sample from distribution
+                    val = sample_from_distribution(mean, stdev)
 
-    
-    # run formula on playerA variables 
+                    # 2. Normalize
+                    if max_val == min_val:
+                        norm = 0.0  # Avoid division by zero
+                    elif sign == 1:
+                        norm = (val - min_val) / (max_val - min_val)
+                    else:
+                        norm = (max_val - val) / (max_val - min_val)
+                    norm = max(0, min(1, norm))
 
+                    sampled[var_name] = val
+                    normalized[var_name] = norm
+
+                # 3. Evaluate equation
+                try:
+                    result = eval(equation, {"__builtins__": None}, normalized)
+                except Exception as e:
+                    result = None
+
+                samples.append({
+                    "sampled": sampled,
+                    "normalized": normalized,
+                    "result": result
+                })
+            scenario_results.append(samples)
+        return scenario_results
+
+    playerA_data = process_player(playerA_variables, playerA_scenarios, playerA_equation, num_samples)
+    playerB_data = process_player(playerB_variables, playerB_scenarios, playerB_equation, num_samples)
     return playerA_data, playerB_data
     
 
+def get_variable_means_per_scenario(variables, scenario_values):
+    """
+    Returns a dict mapping variable names to a list of their mean values per scenario.
+    variables: list of dicts, each with at least a 'name' key
+    scenario_values: list of lists, each inner list is the means for all variables in one scenario
+    """
+    result = {}
+    for var_idx, var in enumerate(variables):
+        var_name = var.get('name', f'var_{var_idx}')
+        # Collect the mean for this variable across all scenarios
+        means = [scenario[var_idx] for scenario in scenario_values]
+        result[var_name] = means
+    return result
+
+def player_data_to_df(player_data):
+    rows = []
+    for scenario_idx, samples in enumerate(player_data):
+        for sample_idx, sample in enumerate(samples):
+            row = {
+                "scenario": scenario_idx,
+                "sample": sample_idx,
+                **{f"sampled_{k}": v for k, v in sample["sampled"].items()},
+                **{f"normalized_{k}": v for k, v in sample["normalized"].items()},
+                "result": sample["result"]
+            }
+            rows.append(row)
+    return pd.DataFrame(rows)
+    
 
