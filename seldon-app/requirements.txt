@@ -1,2 +1,3 @@
 Flask==3.0.3
 git+https://github.com/DerekJongWu/sl-package.git
+pandas>=2.0.0
