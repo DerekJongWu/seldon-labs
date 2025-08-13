@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify
 from datetime import datetime
-from sl_package import sample_from_distribution
 import json
 
 app = Flask(__name__)
@@ -35,7 +34,7 @@ def generate():
                 "variables": player_b.get("variables", []),
                 "scenarioValues": player_b.get("scenarioValues", []),
                 "formula": player_b.get("formula", ""),
-                "scenarios": player_b.get("scenarios", [])
+                "scenarios": player_b.get("scenarios", [])  
             },
             "summary": {
                 "totalVariablesPlayerA": len(player_a.get("variables", [])),
