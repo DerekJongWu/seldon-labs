@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify
 from datetime import datetime
-from sl_package import sample_from_distribution
 import json
 
 app = Flask(__name__)
