@@ -392,18 +392,19 @@ export default function Home() {
     setError(null);
     try {
       const data = gatherSubmissionData();
-      const res = await fetch("/api/generate", {
+      const res = await fetch("https://sl-api-nf85.onrender.com/api/game-info", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
       if (!res.ok) throw new Error(`API error: ${res.status}`);
-      const result = await res.json();
       
-      // Automatically download the JSON file
+      // Get the Excel file as a blob
+      const blob = await res.blob();
+      
+      // Automatically download the Excel file
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-      const filename = `game_results_${timestamp}.json`;
-      const blob = new Blob([JSON.stringify(result, null, 2)], { type: 'application/json' });
+      const filename = `game_results_${timestamp}.xlsx`;
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
