@@ -368,23 +368,16 @@ export default function Home() {
       scenarios,
     };
     
-    // Alternative: Send formula as structured data instead of string
-    // const playerA = {
-    //   variables,
-    //   scenarioValues: scenarioValuesA,
-    //   formula: {
-    //     expression: formulaA,
-    //     variables: variables.map((v, i) => ({
-    //       name: `v${i+1}`,
-    //       type: 'Stnd', // or 'Val', 'weight', etc.
-    //       coefficient: parseFloat(v.weight) || 1
-    //     }))
-    //   },
-    //   scenarios,
-    // };
+    // Create summary data
+    const summary = {
+      totalVariablesPlayerA: variables.length,
+      totalVariablesPlayerB: variablesB.length,
+      scenariosCount: scenarios.length,
+      playerAHasFormula: !!formulaA,
+      playerBHasFormula: !!formulaB
+    };
     
-    // Optionally, you can also send payoff results if you want
-    return { playerA, playerB };
+    return { playerA, playerB, summary };
   };
 
   const handleGenerate = async () => {
