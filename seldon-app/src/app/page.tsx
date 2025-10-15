@@ -327,6 +327,178 @@ export default function Home() {
     });
   };
 
+  // Handle paste for Player A
+  const handlePasteA = (e: React.ClipboardEvent, startRowIndex: number) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text');
+    const rows = pastedData.split('\n').filter(row => row.trim() !== '');
+
+    const newVariables = [...variables];
+
+    // Process each pasted row
+    rows.forEach((row, rowOffset) => {
+      const cells = row.split('\t');
+      const targetIndex = startRowIndex + rowOffset;
+
+      // If we need more rows, add them
+      if (targetIndex >= newVariables.length) {
+        newVariables.push({
+          variable: "",
+          variableNumber: "",
+          desiredEffect: "Positive",
+          dataType: "",
+          mean: "",
+          max: "",
+          min: "",
+          stdev: "",
+          weight: "",
+        });
+      }
+
+      // Map cells to variable fields (in order of table columns)
+      if (cells[0] !== undefined) newVariables[targetIndex].variable = cells[0].trim();
+      if (cells[1] !== undefined) newVariables[targetIndex].variableNumber = cells[1].trim();
+      if (cells[2] !== undefined) {
+        const effect = cells[2].trim();
+        newVariables[targetIndex].desiredEffect = effect === "Negative" ? "Negative" : "Positive";
+      }
+      if (cells[3] !== undefined) newVariables[targetIndex].dataType = cells[3].trim();
+      if (cells[4] !== undefined) newVariables[targetIndex].mean = cells[4].trim();
+      if (cells[5] !== undefined) newVariables[targetIndex].max = cells[5].trim();
+      if (cells[6] !== undefined) newVariables[targetIndex].min = cells[6].trim();
+      if (cells[7] !== undefined) newVariables[targetIndex].stdev = cells[7].trim();
+      if (cells[8] !== undefined) newVariables[targetIndex].weight = cells[8].trim();
+    });
+
+    setVariables(newVariables);
+
+    // Update scenario values to match new variable count
+    setScenarioValuesA(prevScenarioValues =>
+      prevScenarioValues.map(row => {
+        const newRow = [...row];
+        while (newRow.length < newVariables.length) {
+          newRow.push("");
+        }
+        return newRow;
+      })
+    );
+  };
+
+  // Handle paste for Player B
+  const handlePasteB = (e: React.ClipboardEvent, startRowIndex: number) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text');
+    const rows = pastedData.split('\n').filter(row => row.trim() !== '');
+
+    const newVariables = [...variablesB];
+
+    // Process each pasted row
+    rows.forEach((row, rowOffset) => {
+      const cells = row.split('\t');
+      const targetIndex = startRowIndex + rowOffset;
+
+      // If we need more rows, add them
+      if (targetIndex >= newVariables.length) {
+        newVariables.push({
+          variable: "",
+          variableNumber: "",
+          desiredEffect: "Positive",
+          dataType: "",
+          mean: "",
+          max: "",
+          min: "",
+          stdev: "",
+          weight: "",
+        });
+      }
+
+      // Map cells to variable fields (in order of table columns)
+      if (cells[0] !== undefined) newVariables[targetIndex].variable = cells[0].trim();
+      if (cells[1] !== undefined) newVariables[targetIndex].variableNumber = cells[1].trim();
+      if (cells[2] !== undefined) {
+        const effect = cells[2].trim();
+        newVariables[targetIndex].desiredEffect = effect === "Negative" ? "Negative" : "Positive";
+      }
+      if (cells[3] !== undefined) newVariables[targetIndex].dataType = cells[3].trim();
+      if (cells[4] !== undefined) newVariables[targetIndex].mean = cells[4].trim();
+      if (cells[5] !== undefined) newVariables[targetIndex].max = cells[5].trim();
+      if (cells[6] !== undefined) newVariables[targetIndex].min = cells[6].trim();
+      if (cells[7] !== undefined) newVariables[targetIndex].stdev = cells[7].trim();
+      if (cells[8] !== undefined) newVariables[targetIndex].weight = cells[8].trim();
+    });
+
+    setVariablesB(newVariables);
+
+    // Update scenario values to match new variable count
+    setScenarioValuesB(prevScenarioValues =>
+      prevScenarioValues.map(row => {
+        const newRow = [...row];
+        while (newRow.length < newVariables.length) {
+          newRow.push("");
+        }
+        return newRow;
+      })
+    );
+  };
+
+  // Handle paste for Player A Scenarios
+  const handlePasteScenariosA = (e: React.ClipboardEvent, startScenarioIdx: number, startVarIdx: number) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text');
+    const rows = pastedData.split('\n').filter(row => row.trim() !== '');
+
+    const newScenarioValues = scenarioValuesA.map(row => [...row]);
+
+    rows.forEach((row, rowOffset) => {
+      const cells = row.split('\t');
+      const targetScenarioIdx = startScenarioIdx + rowOffset;
+
+      // Stop if we exceed the number of scenarios
+      if (targetScenarioIdx >= scenarios.length) return;
+
+      // Process each cell, starting from the variable where paste was initiated
+      cells.forEach((cell, cellOffset) => {
+        const targetVarIdx = startVarIdx + cellOffset;
+
+        // Stop if we exceed the number of variables
+        if (targetVarIdx >= variables.length) return;
+
+        newScenarioValues[targetScenarioIdx][targetVarIdx] = cell.trim();
+      });
+    });
+
+    setScenarioValuesA(newScenarioValues);
+  };
+
+  // Handle paste for Player B Scenarios
+  const handlePasteScenariosB = (e: React.ClipboardEvent, startScenarioIdx: number, startVarIdx: number) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text');
+    const rows = pastedData.split('\n').filter(row => row.trim() !== '');
+
+    const newScenarioValues = scenarioValuesB.map(row => [...row]);
+
+    rows.forEach((row, rowOffset) => {
+      const cells = row.split('\t');
+      const targetScenarioIdx = startScenarioIdx + rowOffset;
+
+      // Stop if we exceed the number of scenarios
+      if (targetScenarioIdx >= scenarios.length) return;
+
+      // Process each cell, starting from the variable where paste was initiated
+      cells.forEach((cell, cellOffset) => {
+        const targetVarIdx = startVarIdx + cellOffset;
+
+        // Stop if we exceed the number of variables
+        if (targetVarIdx >= variablesB.length) return;
+
+        newScenarioValues[targetScenarioIdx][targetVarIdx] = cell.trim();
+      });
+    });
+
+    setScenarioValuesB(newScenarioValues);
+  };
+
   // Add state for formula input for Player A and Player B
   const [formulaA, setFormulaA] = useState("");
   const [formulaB, setFormulaB] = useState("");
@@ -449,6 +621,7 @@ export default function Home() {
                         className="w-28 sm:w-32 px-1 py-0.5 border rounded"
                         value={v.variable}
                         onChange={e => handleChange(idx, "variable", e.target.value)}
+                        onPaste={e => handlePasteA(e, idx)}
                         placeholder="e.g. GDP Growth"
                       />
                     </td>
@@ -594,6 +767,7 @@ export default function Home() {
                               className="w-16 px-1 py-0.5 border rounded"
                               value={scenarioVal}
                               onChange={e => handleScenarioChangeA(sIdx, vIdx, e.target.value)}
+                              onPaste={e => handlePasteScenariosA(e, sIdx, vIdx)}
                               placeholder="Value"
                             />
                           </td>
@@ -692,6 +866,7 @@ export default function Home() {
                         className="w-28 sm:w-32 px-1 py-0.5 border rounded"
                         value={v.variable}
                         onChange={e => handleChangeB(idx, "variable", e.target.value)}
+                        onPaste={e => handlePasteB(e, idx)}
                         placeholder="e.g. GDP Growth"
                       />
                     </td>
@@ -837,6 +1012,7 @@ export default function Home() {
                               className="w-16 px-1 py-0.5 border rounded"
                               value={scenarioVal}
                               onChange={e => handleScenarioChangeB(sIdx, vIdx, e.target.value)}
+                              onPaste={e => handlePasteScenariosB(e, sIdx, vIdx)}
                               placeholder="Value"
                             />
                           </td>

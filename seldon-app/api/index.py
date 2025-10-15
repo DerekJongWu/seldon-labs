@@ -51,5 +51,3 @@ def generate():
         return jsonify({"error": f"An error occurred: {str(e)}"}), 500
 
 
-    
-
