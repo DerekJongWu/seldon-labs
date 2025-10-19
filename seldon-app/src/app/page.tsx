@@ -216,7 +216,7 @@ export default function Home() {
     },
   ]);
 
-  const scenarios = ["NT_NT", "T_NT", "NT_T", "T_T"];
+  const scenarios = ["NT_NT", "NT_T", "T_NT", "T_T"];
 
   // For Player A
   const [scenarioValuesA, setScenarioValuesA] = useState(
